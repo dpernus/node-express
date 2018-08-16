@@ -1,5 +1,6 @@
 
 var express = require('express');
+const bodyParser = require('body-parser')
 var app = express();
 
 // --> 7)  Mount the Logger middleware here
@@ -24,6 +25,11 @@ const logger = (req, res, next) => {
 }
 
 app.use(logger);
+
+  
+/** 11) Get ready for POST Requests - the `body-parser` */
+// place it before all the routes !
+app.use(bodyParser.urlencoded({extended: false}))
 
 /** 3) Serve an HTML file */
 app.get('', (req, res) => {
@@ -50,18 +56,30 @@ app.get('/json', (req, res)=> {
 })
  
 /** 8) Chaining middleware. A Time server */
+const timeMiddleware = (req, res, next) => {
+  req.time = new Date().toString();
+  console.log(req.time);
+  next();
+}
 
+app.get('/now', timeMiddleware, (req, res) => {
+  res.json({time: req.time})
+})
 
 /** 9)  Get input from client - Route parameters */
-
+app.get('/:word/echo', (req, res) => {
+  res.json({echo: req.params.word})
+})
 
 /** 10) Get input from client - Query parameters */
 // /name?first=<firstname>&last=<lastname>
-
-  
-/** 11) Get ready for POST Requests - the `body-parser` */
-// place it before all the routes !
-
+app.route('/name')
+   .get((req, res) => {
+      res.json({name: `${req.query.first} ${req.query.last}`});
+    })
+   .post((req, res) => {
+      res.json({name: `${req.body.first} ${req.body.last}`})
+    })
 
 /** 12) Get data form POST  */
 
